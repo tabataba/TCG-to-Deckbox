@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import sys
 import csv
 import os
@@ -60,6 +62,7 @@ with open(FILE, newline="") as tcgcsvfile,open(outputFile, "w", newline="") as d
     # Adjust column names
     headerstcg = csvreader.fieldnames
     for index, header in enumerate(headerstcg):
+        #print(configParser["column"])
         if header.lower() in configParser["COLUMNS"].keys():
             headerstcg[index]=configParser["COLUMNS"][header.lower()]
 
@@ -83,11 +86,21 @@ with open(FILE, newline="") as tcgcsvfile,open(outputFile, "w", newline="") as d
         # Map Chinese Languages
         replace_strings(row, "LANGUAGES", "Language")
 
+        # Remove Parentheses and Slashes from all Card Names
+        try: 
+            name_split = row["Name"].split(' (')
+            if len(name_split) > 1:
+                row["Name"] = name_split[0]
+        except:
+            pass
+
+
         # Map Specific Card Names, and drop extra tidbits
-        row["Name"]=row["Name"].replace(" (Alternate Art)","")
-        row["Name"]=row["Name"].replace(" (Extended Art)","")
-        row["Name"]=row["Name"].replace(" (Showcase)","")
-        row["Name"]=row["Name"].replace(" (Borderless)","")
+        #row["Name"]=row["Name"].replace(" (Alternate Art)","")
+        #row["Name"]=row["Name"].replace(" (Extended Art)","")
+        #row["Name"]=row["Name"].replace(" (Showcase)","")
+        #row["Name"]=row["Name"].replace(" (Borderless)","")
+        #row["Name"]=row["Name"].replace(" (Foil Etched)","")
         #For BFZ lands...there's no differentiator from the full arts and the non full arts.
         row["Name"]=row["Name"].replace(" - Full Art","")
 
@@ -104,8 +117,17 @@ with open(FILE, newline="") as tcgcsvfile,open(outputFile, "w", newline="") as d
         # remove weird symbols from card numbers
         row["Card Number"] = re.sub(r"[*★]", "", row["Card Number"])
 
+
         # Map Specific Edition Names
         replace_strings(row, "EDITONS", "Edition")
+
+        # Further Edition Name Changes:
+        try:
+            name_split = row["Edition"].split('Commander: ')
+            if name_split > 1:
+                row["Name"] = name_split[1] + ' Commander'
+        except:
+            pass
 
         # write the converted output
         csvwriter.writerow(row)
